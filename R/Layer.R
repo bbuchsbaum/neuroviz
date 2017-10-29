@@ -334,11 +334,14 @@ RenderedSliceStack <-
 
         grid.newpage()
 
+        ## fill black background
         grid.rect(gp = gpar(fill = "black"), name =
                     "background_fill")
 
+        ## draw slice rasters
         grid.draw(self$grobList)
 
+        ## size of background rect
         frame_width <-
           as.numeric(convertX(grobWidth(grid.get(
             "background_fill"
@@ -384,7 +387,7 @@ RenderedSliceStack <-
           }
 
 
-          ## crosshair
+          ## draw crosshair
           grid.lines(x=unit(c(xoffset, xoffset+image_width),"points"),
                      y=unit(c(yc,yc),"points"),
                      gp=gpar(col="green", lwd=2, lty=2))
