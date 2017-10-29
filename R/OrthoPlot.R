@@ -1,19 +1,18 @@
 
 ## TODO
 ## proper selection of foreground layer
-# proper color bar (looks ugly)
-## cross hair
-# layout options ('triangle', '1row')
+## layout options ('triangle', '1row')
 ## reusable components
-## break out into neuroviz package
 
 color_map <- ColorMaps$new()
 
+# wrap slider in a div
 wrap_slider <- function(...) {
   div(style = "height: 85px; padding: 0px 0px; font-size: 12px;",
       sliderInput(...))
 }
 
+## create control component for background image
 background_panel <- function(vol) {
   maxval <- signif(max(vol),3)
   minval <- signif(min(vol),3)
@@ -25,11 +24,11 @@ background_panel <- function(vol) {
                selectInput("background_col", "Color Map:",color_map$get_map_names(), "grayscale")),
            div(style="display: inline-block;vertical-align:top; width: 100px;",
                numericInput(inputId="background_col_size", label="Size: ", value = 256, min=2, max=256))
-         #plotOutput("background_colorbar", width="100%", height=50)
 
   )
 }
 
+## create control component for foreground image
 foreground_panel <- function(vol) {
     maxval <- signif(max(vol),3)
     minval <- signif(min(vol),3)
@@ -49,7 +48,7 @@ foreground_panel <- function(vol) {
 }
 
 
-
+## create dashbaord component for displaying image slices
 slice_box <- function(title, id, slice_range, sid, height=300, width=4) {
   box(title=title, plotOutput(id, height=height, click = paste0(id, "_click")),
       sliderInput(sid, "Slice:",
@@ -119,10 +118,8 @@ ortho_plot <- function(..., height=300) {
       slice_box("Coronal", "coronal_plot", overlay_set$coronal$vrange, "cor_slider",width=6),
       box(title="Color", width=6, solidHeader=TRUE, status="primary", background="black", align="center",
           column(5,
-            #box(title="Color", width=2, solidHeader=TRUE, status="primary", background="black", align="center",
             plotOutput("colorbar")),
           column(7, offset=0,
-            #box(title="Info", width=4, solidHeader=TRUE, status="primary", background="black", align="center",
              div(style="text-align:left; padding:0px;width:100%;",
                verbatimTextOutput("crosshair_loc"),
                verbatimTextOutput("voxel_loc"),
