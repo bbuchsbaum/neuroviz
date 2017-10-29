@@ -186,10 +186,6 @@ ortho_plot <- function(..., height=300) {
       list(x=xy[1],y=xy[2], d=d)
     }
 
-    #observeEvent(input$foreground_col, {
-    #  rvs$fg_colormap
-    #
-    #})
 
     observeEvent(input$axial_plot_click, {
       print(paste("X:", input$axial_plot_click$x))
