@@ -336,23 +336,9 @@ color_bar <- function(lut, yrange=c(0,100)) {
   for (i in 1:length(lut)) {
     ymin <- yrange[1] + ((i-1) * strip_h)
     rect(xleft=0, ybottom=ymin, ytop=ymin+strip_h, xright=1, col=lut[i], border=lut[i])
-     #grid.rect(x= unit((i-1)*strip_w, "points"), y=unit(.5,"npc"), width=unit(strip_w, "points"), height=unit(1, "npc"), gp=gpar(fill=lut[i]))
+    #grid.rect(x= unit((i-1)*strip_w, "points"), y=unit(.5,"npc"), width=unit(strip_w, "points"), height=unit(1, "npc"), gp=gpar(fill=lut[i]))
   }
-
-  #dev.off()
-  #list(src=outfile, alt="color bar")
 
 }
 
-# output$foreground_colorbar <- renderPlot({
-#   width <- session$clientData[[paste0("output_foreground_colorbar_width")]]
-#   height <- session$clientData[[paste0("output_foreground_colorbar_height")]]
-#   color_bar(rainbow(25), range(axial_overlay$layers[[2]]$vol))
-# })
-#
-# output$background_colorbar <- renderPlot({
-#   width <- session$clientData[[paste0("output_background_colorbar_width")]]
-#   height <- session$clientData[[paste0("output_background_colorbar_height")]]
-#   color_bar(axial_overlay$layers[[1]]$get_color_map(), range(axial_overlay$layers[[1]]$vol))
-# })
 
