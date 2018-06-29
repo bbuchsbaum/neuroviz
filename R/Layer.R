@@ -1,5 +1,22 @@
 
+#' Class that encapsulates a layer used for dispalying slices of a 3D volume.
+#'
+#' @docType class
 #' @importFrom R6 R6Class
+#' @export
+#' @field vol an object of class \code{\linkS4class{NeuroVol}} supplying the image data
+#' @field color_map the color map
+#' @field threshold the low and high thresholds to determine transparency.
+#' @field irange the intensity range of the low and high end of color scale.
+#' @field view the orientation code (e.g. "LPI") describing the display axes.
+#' @field zero_col the color assigned to values of 0.
+#' @field alpha the degree of opacity for the layer (0 = transparent, 1 = opaque)
+#' @field view_space the \code{linkS4class{NeuroSpace}} associaed with the view.
+#' @field view_axes
+#' @field value_range the full numeric range of the underlying volume
+#' @field desc a short \code{character} description of the layer
+#' @return Object of \code{\link{R6Class}} with methods for accessing and changing layer properties.
+#' @format \code{\link{R6Class}} object.
 Layer <- R6Class("Layer",
              portable = TRUE,
              public = list(
@@ -249,6 +266,15 @@ Overlay <- R6Class("Overlay",
 
 
 
+#' @field slice
+#' @field width
+#' @field height
+#' @field xbounds
+#' @field ybounds
+#' @field raster
+#' @field zpos
+#' @field zlevel
+#' @export
 RenderedSlice <- R6Class("RenderedSlice",
                          portable=TRUE,
                          public = list(
@@ -294,7 +320,19 @@ RenderedSlice <- R6Class("RenderedSlice",
 )
 
 
-
+#' Class representing a stack of rendered slices.
+#'
+#' @field slices
+#' @field width
+#' @field height
+#' @field xbounds
+#' @field ybounds
+#' @field grobList
+#' @field zpos
+#' @field view_space
+#' @field view_axes
+#' @docType class
+#' @export
 RenderedSliceStack <-
   R6Class(
     "RenderedSliceStack",

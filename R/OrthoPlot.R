@@ -7,12 +7,14 @@
 color_map <- ColorMaps$new()
 
 # wrap slider in a div
+#' @keywords internal
 wrap_slider <- function(...) {
   div(style = "height: 85px; padding: 0px 0px; font-size: 12px;",
       sliderInput(...))
 }
 
 ## create control component for background image
+#' @keywords internal
 background_panel <- function(vol) {
   maxval <- signif(max(vol),3)
   minval <- signif(min(vol),3)
@@ -29,6 +31,7 @@ background_panel <- function(vol) {
 }
 
 ## create control component for foreground image
+#' @keywords internal
 foreground_panel <- function(vol) {
     maxval <- signif(max(vol),3)
     minval <- signif(min(vol),3)
@@ -49,6 +52,7 @@ foreground_panel <- function(vol) {
 
 
 ## create dashbaord component for displaying image slices
+#' @keywords internal
 slice_box <- function(title, id, slice_range, sid, height=300, width=4) {
   box(title=title, plotOutput(id, height=height, click = paste0(id, "_click")),
       sliderInput(sid, "Slice:",
@@ -63,6 +67,7 @@ slice_box <- function(title, id, slice_range, sid, height=300, width=4) {
 }
 
 
+#' @keywords internal
 create_overlay <- function(...) {
 
   vlist <- list(...)
@@ -91,10 +96,15 @@ create_overlay <- function(...) {
   )
 }
 
-
+#' ortho_plot
+#'
+#' An shiny-based orthogonal viewer for a volumetric neuroimaging data
+#'
 #' @import shiny
-#' @import neuroim
+#' @import neuroim2
 #' @import shinydashboard
+#' @param ... a variable length list of \code{\linkS4class{NeuroVol}} objects
+#' @export
 ortho_plot <- function(..., height=300) {
 
   overlay_set <- create_overlay(...)
@@ -168,13 +178,13 @@ ortho_plot <- function(..., height=300) {
       vox <- c(x,y)  * d
 
       ## convert from view_space to voxel space
-      gg_native <- gridToGrid(ov_source$view_space, matrix(c(vox,0), ncol=3))
+      gg_native <- grid_to_grid(ov_source$view_space, matrix(c(vox,0), ncol=3))
 
       ## convert to view space of destination
-      gg_coord <- gridToCoord(ov_dest$view_space, gg_native)
+      gg_coord <- grid_to_coord(ov_dest$view_space, gg_native)
 
       ## convert back to voxel space of destination
-      gg_vox <- coordToGrid(ov_dest$view_space, gg_coord)
+      gg_vox <- coord_to_grid(ov_dest$view_space, gg_coord)
 
       ## get the coordinate of the z-axis
       gg_vox[which_dim(ov_dest$view_space, ov_dest$layers[[1]]$view_axes@k)]
@@ -322,6 +332,7 @@ ortho_plot <- function(..., height=300) {
 }
 
 # Function to plot color bar
+#' @keywords internal
 color_bar <- function(lut, yrange=c(0,100)) {
 
   par(bg="gray6")
