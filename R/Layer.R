@@ -52,7 +52,7 @@ Layer <- R6Class("Layer",
 
                  stopifnot(length(view) == 3)
 
-                 self$view_axes <- findAnatomy3D(view[1], view[2], view[3])
+                 self$view_axes <- neuroim2:::findAnatomy3D(view[1], view[2], view[3])
                  self$view_space <- reorient(space(vol), view)
                },
 
@@ -127,6 +127,8 @@ Layer <- R6Class("Layer",
                    stop(paste("zpos outside z bounds: ", zpos, " bounds: ", zran))
                  }
 
+
+
                  ## extract slice
                  slice <- slice(self$vol, zlevel, self$view_space, self$view_axes)
 
@@ -145,7 +147,16 @@ Layer <- R6Class("Layer",
              )
 )
 
-
+#' Class that describes a stack of image Layers
+#'
+#' @field layers a \code{list} of \code{Layer} objects
+#' @field view_space
+#' @field view_axes
+#' @field layer_names
+#'
+#' @docType class
+#' @importFrom R6 R6Class
+#' @export
 Overlay <- R6Class("Overlay",
                    portable=TRUE,
                    public = list(
@@ -218,7 +229,6 @@ Overlay <- R6Class("Overlay",
                    },
 
 
-
                    render_slice=function(zpos, selected=NULL, width=NULL, height=NULL) {
 
                      if (is.null(selected)) {
@@ -256,7 +266,8 @@ Overlay <- R6Class("Overlay",
                                             view_axes=self$view_axes,
                                             width=width, height=height,
                                             xbounds=sliceList[[1]]$xbounds,
-                                            ybounds=sliceList[[1]]$ybounds, grobList=gl,
+                                            ybounds=sliceList[[1]]$ybounds,
+                                            grobList=gl,
                                             zpos=sliceList[[1]]$zpos)
 
 
@@ -275,6 +286,7 @@ Overlay <- R6Class("Overlay",
 #' @field zpos
 #' @field zlevel
 #' @export
+#' @importFrom grid rasterGrob unit
 RenderedSlice <- R6Class("RenderedSlice",
                          portable=TRUE,
                          public = list(
@@ -299,7 +311,7 @@ RenderedSlice <- R6Class("RenderedSlice",
 
                            get_grob = function(sx=1, sy=1) {
                              #browser()
-                             grob <- rasterGrob(self$raster,
+                             grob <- grid::rasterGrob(self$raster,
                                                 width=unit(spacing(self$slice)[1] * dim(self$slice)[1] * sx, "points"),
                                                 height=unit(spacing(self$slice)[2] * dim(self$slice)[2] * sy, "points"),
                                                 interpolate=TRUE)
@@ -334,8 +346,7 @@ RenderedSlice <- R6Class("RenderedSlice",
 #' @docType class
 #' @export
 RenderedSliceStack <-
-  R6Class(
-    "RenderedSliceStack",
+  R6Class("RenderedSliceStack",
     portable = TRUE,
     public = list(
       slices = NULL,
@@ -410,7 +421,7 @@ RenderedSliceStack <-
 
         if (!is.null(marker_pos)) {
 
-          marker_pos <- t(permMat(self$view_axes)) %*% marker_pos
+          marker_pos <- t(perm_mat(self$view_axes)) %*% marker_pos
           bds <- bounds(self$view_space)
           bds <- t(apply(bounds(self$view_space), 1, sort))
           xc <- xoffset + (marker_pos[1] - bds[1,1])/diff(bds[1,]) * image_width
@@ -473,6 +484,43 @@ ColorMaps <- R6Class("ColorMaps",
                       get_map_names = function() self$map_names
                     )
 )
+
+
+#' @import assertthat
+#' @keywords internal
+mapToColors <- function (imslice, col = heat.colors(128, alpha = 1), zero_col = "#00000000",
+          alpha = 1, irange = range(imslice), threshold = c(0, 0)) {
+
+  assertthat::assert_that(diff(irange) >= 0)
+  drange <- diff(irange)
+  mcols <- (imslice - irange[1])/diff(irange) * (length(col) -
+                                                   1) + 1
+  mcols[mcols < 1] <- 1
+  mcols[mcols > length(col)] <- length(col)
+  imcols <- col[mcols]
+  if (!is.vector(imslice)) {
+    dim(imcols) <- dim(imslice)
+  }
+  imcols[imslice == 0] <- zero_col
+
+  if (diff(threshold) > 0) {
+    imcols[(imslice >= threshold[1]) & (imslice <= threshold[2])] <- "#00000000"
+  }
+  if (alpha < 1) {
+    rgbmat <- col2rgb(imcols, alpha = TRUE)
+    rgbmat <- rgbmat/255
+    rgbmat[4, ] <- rgbmat[4, ] * alpha
+    if (is.vector(imslice)) {
+      array(t(rgbmat), c(length(imslice), 4))
+    }
+    else {
+      array(t(rgbmat), c(dim(imslice), 4))
+    }
+  }
+  else {
+    imcols
+  }
+}
 
 
 

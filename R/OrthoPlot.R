@@ -54,7 +54,7 @@ foreground_panel <- function(vol) {
 ## create dashbaord component for displaying image slices
 #' @keywords internal
 slice_box <- function(title, id, slice_range, sid, height=300, width=4) {
-  box(title=title, plotOutput(id, height=height, click = paste0(id, "_click")),
+  shinydashboard::box(title=title, plotOutput(id, height=height, click = paste0(id, "_click")),
       sliderInput(sid, "Slice:",
                   slice_range[1],
                   slice_range[2],
@@ -63,6 +63,26 @@ slice_box <- function(title, id, slice_range, sid, height=300, width=4) {
                                  slice_range[2])))), width=width,
 
       solidHeader=TRUE, status="primary", background="black", align="center")
+
+}
+
+#' @keywords internal
+create_overlay_element <- function(overlay) {
+
+  gen_el <- function(overlay, vname, num) {
+    vspace <- overlay$view_space
+    range <- bounds(vspace)[3,]
+    list(
+      overlay=overlay,
+      zrange=range,
+      start_slice= median(seq(range[1], range[2])),
+      vrange=c(1, overlay$zdim()),
+      view_name=vname,
+      view_num=num
+    )
+  }
+
+  gen_el(overlay, "axial", 1)
 
 }
 
@@ -96,9 +116,90 @@ create_overlay <- function(...) {
   )
 }
 
+#' slice_plot
+#'
+#' A shiny-based slice-based viewer for a volumetric neuroimaging data
+#' @import shiny
+#' @param overlay a \code{Overlay} object
+#' @export
+#'
+slice_plot <- function(overlay, height=300) {
+
+  ov <- create_overlay_element(overlay)
+
+  ui <- shinyUI(
+    fluidPage(
+      slice_box("SliceViewer", "slice_plot", ov$vrange, "slice_slider", width=6)
+    )
+  )
+
+
+
+  server <- function(input, output, session) {
+
+    rvs <- reactiveValues(
+      slice = NULL,
+      plot_click = NULL,
+      frame=NULL,
+      crosshair=c(0,0,0),
+      voxel=c(1,1,1),
+      fg_voxel=c(1,1,1)
+    )
+
+    plot_id <- "slice_plot"
+    slider_id <- "slice_slider"
+
+    gen_render_plot <- function(ov) {
+      vspace=ov$overlay$view_space
+
+      renderPlot({
+
+        width <- session$clientData[[paste0("output_", plot_id, "_width")]]
+        height <- session$clientData[[paste0("output_", plot_id, "_height")]]
+
+        ## the voxel index of background volume to display
+        ind <- input[[slider_id]]
+
+        ## ind is in grid space of RPI, need to convert to view_space
+        dnum <- which_dim(space(ov$overlay$layers[[1]]$vol), ov$overlay$view_axes@k)
+        vox <- rvs[["voxel"]]
+        vox[dnum] <- ind
+        rvs[["voxel"]] <- vox
+
+
+        coord <- grid_to_coord(ov$overlay$view_space, vox)
+        zpos <- coord[3]
+
+        slice <- overlay$render_slice(zpos, 1:ov$overlay$length(), width, height)
+        rvs[["slice"]] <- slice
+
+        if (length(slice$slices) > 1) {
+          fgvol <- ov$overlay$layers[[2]]$vol
+          vox <- round(coord_to_grid(space(fgvol), rvs$crosshair))
+          rvs[["fg_voxel"]] <- vox
+        }
+
+
+        info <- slice$draw(marker_pos=rvs$crosshair)
+        rvs[["frame"]] <- info
+
+      })
+    }
+
+    output$slice_plot <- gen_render_plot(ov)
+
+
+
+  }
+
+  shinyApp(ui = ui, server = server)
+
+
+}
+
 #' ortho_plot
 #'
-#' An shiny-based orthogonal viewer for a volumetric neuroimaging data
+#' A shiny-based orthogonal viewer for a volumetric neuroimaging data
 #'
 #' @import shiny
 #' @import neuroim2
@@ -153,7 +254,6 @@ ortho_plot <- function(..., height=300) {
     body
 
   )
-
 
   server <- function(input, output, session) {
 
@@ -268,7 +368,7 @@ ortho_plot <- function(..., height=300) {
         vox[dnum] <- ind
         rvs[["voxel"]] <- vox
 
-        coord <- gridToCoord(view$overlay$view_space, vox)
+        coord <- grid_to_coord(view$overlay$view_space, vox)
         zpos <- coord[3]
         rvs$crosshair[view$view_num] <- zpos
 

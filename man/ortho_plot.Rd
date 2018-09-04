@@ -10,5 +10,5 @@ ortho_plot(..., height = 300)
 \item{...}{a variable length list of \code{\linkS4class{NeuroVol}} objects}
 }
 \description{
-An shiny-based orthogonal viewer for a volumetric neuroimaging data
+A shiny-based orthogonal viewer for a volumetric neuroimaging data
 }
